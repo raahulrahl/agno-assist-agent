@@ -1,0 +1,52 @@
+site_name: agno-assist-agent
+repo_url: https://github.com/Paraschamoli/agno-assist-agent
+site_url: https://Paraschamoli.github.io/agno-assist-agent
+site_description: Agno Assist Agent is a lightweight AI assistant designed to help users with quick queries, task guidance, and contextual support across different workflows. It focuses on providing clear, concise, and actionable responses, acting as a general-purpose helper that can assist with information lookup, explanations, and step-by-step assistance while staying adaptable to various use cases.
+site_author: Paras Chamoli
+edit_uri: edit/main/docs/
+repo_name: Paraschamoli/agno-assist-agent
+copyright: Maintained by <a href="https://Paraschamoli.com">Paraschamoli</a>.
+
+nav:
+  - Home: index.md
+  - Modules: modules.md
+plugins:
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          paths: ["src/agno_assist_agent"]
+theme:
+  name: material
+  feature:
+    tabs: true
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: white
+      accent: deep orange
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: black
+      accent: deep orange
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  icon:
+    repo: fontawesome/brands/github
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/Paraschamoli/agno-assist-agent
+    - icon: fontawesome/brands/python
+      link: https://pypi.org/project/agno-assist-agent
+
+markdown_extensions:
+  - toc:
+      permalink: true
+  - pymdownx.arithmatex:
+      generic: true

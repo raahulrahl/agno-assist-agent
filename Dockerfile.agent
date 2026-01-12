@@ -1,0 +1,74 @@
+# Dockerfile
+#
+# Multi-stage build for Agno Assist Agent
+# Builder: python:3.12-bookworm + uv
+# Runtime: python:3.12-slim
+
+# ---------- Builder stage ----------
+FROM python:3.12-bookworm AS builder
+
+# Install uv
+RUN pip install --no-cache-dir uv
+
+ENV UV_COMPILE_BYTECODE=1 UV_LINK_MODE=copy
+WORKDIR /app
+
+# 1) Install dependencies into .venv (lockfile + pyproject)
+COPY pyproject.toml ./
+RUN uv venv && \
+    uv pip compile pyproject.toml -o requirements.txt && \
+    uv pip install --system --no-cache -r requirements.txt
+
+# 2) Copy agent code
+COPY agno_assist_agent/ /app/agno_assist_agent/
+COPY *.py /app/
+COPY README.md /app/
+
+# 3) Install project itself into the same venv
+RUN uv pip install --system --no-cache -e .
+
+# ---------- Runtime stage ----------
+FROM python:3.12-slim
+
+# OCI labels
+LABEL org.opencontainers.image.title="agno-assist-agent"
+LABEL org.opencontainers.image.description="AI-powered documentation assistant for the Agno framework using retrieval-augmented generation (RAG). Provides accurate, documentation-grounded responses by searching vector databases with hybrid search capabilities."
+LABEL org.opencontainers.image.authors="Paras Chamoli <paras25619@gmail.com>"
+LABEL org.opencontainers.image.version="1.0.0"
+LABEL org.opencontainers.image.source="https://github.com/Paraschamoli/agno-assist-agent"
+LABEL org.opencontainers.image.licenses="MIT"
+
+# Install runtime dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create app user and directories
+RUN useradd -m -u 1000 app && \
+    mkdir -p /app/tmp && \
+    chown -R app:app /app
+
+WORKDIR /app
+
+# Copy app + Python packages from builder
+COPY --from=builder /usr/local/lib/python3.12/site-packages /usr/local/lib/python3.12/site-packages
+COPY --from=builder /usr/local/bin /usr/local/bin
+COPY --from=builder /app /app
+
+# Set permissions
+RUN chown -R app:app /app
+
+# Switch to non-root user
+USER app
+
+# Set environment variables
+ENV PYTHONPATH=/app
+ENV PYTHONUNBUFFERED=1
+ENV PATH="/usr/local/bin:${PATH}"
+
+# Create necessary directories
+RUN mkdir -p /app/tmp/lancedb
+
+EXPOSE 3773
+
+CMD ["python", "-m", "agno_assist_agent"]

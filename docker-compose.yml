@@ -1,0 +1,24 @@
+services:
+  agno_assist_agent:
+    build:
+      context: .
+      dockerfile: Dockerfile.agent
+    container_name: agno_assist_agent
+    ports:
+      - "3773:3773"
+    environment:
+      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
+      - MEM0_API_KEY=${MEM0_API_KEY}
+      - MODEL_NAME=${MODEL_NAME:-openai/gpt-4o}
+      - ENABLE_VECTOR_DB=${ENABLE_VECTOR_DB:-true}
+      - VECTOR_DB_PATH=${VECTOR_DB_PATH:-/app/tmp/lancedb}
+    env_file:
+      - .env
+    volumes:
+      - ./agno_assist_agent:/app/agno_assist_agent
+      - ./agent_config.json:/app/agent_config.json
+      - agno_data:/app/tmp
+    restart: unless-stopped
+
+volumes:
+  agno_data:

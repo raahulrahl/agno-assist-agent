@@ -1,0 +1,334 @@
+id: agno-assist-v1
+name: agno-assist
+version: 1.0.0
+author: paras25619@gmail.com
+
+# Description
+description: |
+  Intelligent documentation assistant for the Agno framework using retrieval-augmented generation (RAG).
+  Provides accurate, documentation-grounded responses by searching vector databases with hybrid search.
+  Uses Mem0 for conversation context and OpenRouter for LLM capabilities.
+
+# Tags and Modes
+tags:
+  - agno
+  - documentation
+  - assistant
+  - rag
+  - vector-database
+  - lancedb
+  - mem0
+  - openrouter
+  - knowledge-base
+  - help-desk
+  - developer-tools
+
+input_modes:
+  - text/plain
+  - application/json
+
+output_modes:
+  - text/plain
+  - application/json
+  - text/markdown
+
+# Example Queries
+examples:
+  - "What is Agno and how do I get started?"
+  - "How do I create an agent with tools in Agno?"
+  - "What vector databases does Agno support?"
+  - "Show me an example of a knowledge base implementation"
+  - "How does retrieval-augmented generation work in Agno?"
+  - "What are the key features of the Agno framework?"
+  - "How do I use hybrid search with LanceDB?"
+  - "Can you explain Agno's agent architecture?"
+  - "What are the dependencies for an Agno project?"
+  - "How do I deploy an Agno agent to production?"
+
+# Detailed Capabilities
+capabilities_detail:
+  documentation_search:
+    supported: true
+    description: "Search Agno documentation using hybrid semantic + keyword search"
+    features:
+      - "Real-time documentation indexing from docs.agno.com"
+      - "Hybrid search combining semantic and keyword matching"
+      - "Vector database storage with LanceDB"
+      - "Relevant document chunk retrieval"
+    limitations: "Requires initial documentation download and indexing"
+
+  conversation_context:
+    supported: true
+    description: "Maintain conversation history and context across sessions"
+    features:
+      - "Mem0-based conversation memory"
+      - "Multi-session context retention"
+      - "Context-aware follow-up responses"
+    limitations: "Depends on Mem0 API availability"
+
+  accurate_responses:
+    supported: true
+    description: "Provide documentation-grounded answers to prevent hallucinations"
+    features:
+      - "RAG-based response generation"
+      - "Source citation from official documentation"
+      - "Code examples from actual documentation"
+    limitations: "Limited to available documentation content"
+
+  vector_database:
+    supported: true
+    description: "Optional LanceDB vector database for document storage"
+    features:
+      - "Local vector storage with optional persistence"
+      - "Hybrid search capabilities"
+      - "Configurable database path"
+    limitations: "Can be disabled for lightweight operation"
+
+# Requirements
+requirements:
+  packages:
+    - "agno>=2.2.0"
+    - "openai>=2.11.0"
+    - "lancedb>=0.14.1"
+    - "pandas>=2.0.0"
+    - "mem0ai>=1.0.1"
+    - "sqlalchemy>=2.0.45"
+    - "exa-py>=2.0.0"
+    - "python-dotenv>=1.0.1"
+  system:
+    - "Python 3.12 or higher"
+    - "Internet access for initial documentation download"
+  min_memory_mb: 512
+  external_services:
+    - "OpenRouter API (required for LLM)"
+    - "Mem0 API (required for memory)"
+    - "Exa API (optional for enhanced search)"
+
+# Performance Metrics
+performance:
+  avg_processing_time_ms: 8000
+  max_concurrent_requests: 3
+  memory_per_request_mb: 512
+  scalability: horizontal
+
+# Tool Restrictions
+allowed_tools:
+  - Mem0Tools
+  - ExaTools
+  - Read
+  - Analyze
+  - Extract
+  - Search
+
+# Rich Documentation
+documentation:
+  overview: |
+    This skill provides intelligent documentation assistance for the Agno framework using
+    retrieval-augmented generation (RAG). It combines vector database search with conversation
+    memory to deliver accurate, context-aware responses grounded in official Agno documentation.
+
+    The agent indexes documentation from docs.agno.com into a LanceDB vector database using
+    OpenAI embeddings. When answering questions, it performs hybrid search (semantic + keyword)
+    to retrieve relevant document chunks, then generates responses using OpenRouter LLM with
+    conversation context from Mem0.
+
+  use_cases:
+    when_to_use:
+      - "Getting answers about Agno framework features and capabilities"
+      - "Learning how to implement specific Agno patterns or components"
+      - "Finding code examples and implementation guidance"
+      - "Understanding Agno architecture and best practices"
+      - "Getting help with Agno configuration and deployment"
+      - "Exploring Agno's tool and knowledge base integrations"
+
+    when_not_to_use:
+      - "Questions outside Agno framework documentation scope"
+      - "Real-time coding assistance or debugging"
+      - "Agno framework feature requests or bug reporting"
+      - "Production deployment or infrastructure management"
+      - "Commercial support or enterprise consulting"
+
+  input_structure: |
+    Accepts natural language queries about Agno framework:
+
+    Plain text:
+    "How do I create an agent with tools?"
+
+    JSON format:
+    {
+      "query": "Agno framework question",
+      "include_examples": true,
+      "detail_level": "detailed"
+    }
+
+    Constraints:
+    - Max query length: 1000 characters
+    - Timeout: 120 seconds for RAG processing
+    - Language: English primary
+    - Scope: Agno framework documentation
+
+  output_format: |
+    Standard Documentation Response:
+    {
+      "success": true,
+      "answer": "Detailed answer based on documentation...",
+      "sources": [
+        {
+          "document": "Agno Documentation",
+          "section": "Getting Started",
+          "relevance_score": 0.92
+        }
+      ],
+      "code_examples": [
+        {
+          "language": "python",
+          "code": "from agno.agent import Agent..."
+        }
+      ],
+      "metadata": {
+        "query": "original_query",
+        "processing_time_ms": 8500,
+        "vector_db_used": true,
+        "memory_context": true,
+        "documentation_version": "2024-01-15"
+      }
+    }
+
+  error_handling:
+    - "No documentation matches: Suggest rephrasing or broader question"
+    - "Vector database unavailable: Fall back to general knowledge"
+    - "API service errors: Provide graceful degradation message"
+    - "Timeout on search: Return partial results with explanation"
+    - "Empty documentation: Initialize with default content"
+
+  examples:
+    - title: "Basic Agent Creation Query"
+      input:
+        query: "How do I create a basic agent in Agno?"
+      output:
+        success: true
+        answer: "To create a basic agent in Agno, you import the Agent class and instantiate it with a model..."
+        sources:
+          - document: "Agno Documentation"
+            section: "Creating Agents"
+            relevance_score: 0.95
+        code_examples:
+          - language: "python"
+            code: "from agno.agent import Agent\nfrom agno.models.openai import OpenAIChat\n\nagent = Agent(\n    name='MyAgent',\n    model=OpenAIChat(id='gpt-4'),\n    instructions='You are a helpful assistant.'\n)"
+
+    - title: "Knowledge Base Implementation"
+      input:
+        query: "How do I implement a knowledge base with LanceDB?"
+        include_examples: true
+      output:
+        success: true
+        answer: "Agno supports LanceDB integration through the LanceDb vector database class..."
+        sources:
+          - document: "Agno Documentation"
+            section: "Knowledge Bases"
+            relevance_score: 0.88
+        code_examples:
+          - language: "python"
+            code: "from agno.knowledge.knowledge import Knowledge\nfrom agno.vectordb.lancedb import LanceDb\n\nknowledge = Knowledge(\n    vector_db=LanceDb(\n        uri='./lancedb_data',\n        table_name='my_knowledge',\n        embedder=OpenAIEmbedder(id='text-embedding-3-small')\n    )\n)"
+
+  best_practices:
+    for_developers:
+      - "Always verify responses against official documentation"
+      - "Implement caching for frequent queries to improve performance"
+      - "Monitor vector database disk usage and implement cleanup"
+      - "Provide clear source attribution for documentation references"
+      - "Test with various query types to ensure good coverage"
+
+    for_orchestrators:
+      - "Route Agno framework questions to this agent"
+      - "Consider caching popular documentation queries"
+      - "Monitor API usage for OpenRouter and Mem0 services"
+      - "Chain with general AI assistants for broader questions"
+      - "Use for developer education and onboarding support"
+
+  installation: |
+    Required packages:
+    pip install agno openai lancedb pandas mem0ai sqlalchemy exa-py python-dotenv
+
+    Environment variables:
+    OPENROUTER_API_KEY=your_openrouter_api_key      # Required for LLM
+    MEM0_API_KEY=your_mem0_api_key                  # Required for memory
+    MODEL_NAME=openai/gpt-4o                        # Optional model specification
+    ENABLE_VECTOR_DB=true                           # Optional vector DB control
+    VECTOR_DB_PATH=tmp/lancedb                      # Optional custom path
+
+    Initial setup:
+    1. Set API keys in .env file
+    2. Run agent to automatically download and index documentation
+    3. First run may take longer due to documentation indexing
+
+  versioning:
+    - version: "1.0.0"
+      date: "2026-01-12"
+      changes: "Initial release with RAG-based Agno documentation assistance, LanceDB vector storage, Mem0 conversation memory, and OpenRouter LLM integration"
+
+# Assessment fields for skill negotiation
+assessment:
+  keywords:
+    - "agno"
+    - "framework"
+    - "documentation"
+    - "assistant"
+    - "help"
+    - "guide"
+    - "tutorial"
+    - "example"
+    - "code"
+    - "implementation"
+    - "rag"
+    - "retrieval"
+    - "vector"
+    - "database"
+    - "lancedb"
+    - "search"
+    - "hybrid"
+    - "knowledge"
+    - "base"
+    - "memory"
+    - "mem0"
+    - "conversation"
+    - "context"
+
+  specializations:
+    - domain: "agno_framework"
+      confidence_boost: 0.4
+    - domain: "documentation_assistance"
+      confidence_boost: 0.3
+    - domain: "rag_implementation"
+      confidence_boost: 0.2
+    - domain: "developer_tools"
+      confidence_boost: 0.1
+
+  anti_patterns:
+    - "movie recommendation"
+    - "weather forecast"
+    - "stock market"
+    - "general chat"
+    - "creative writing"
+    - "image generation"
+    - "music recommendation"
+    - "game development"
+    - "financial advice"
+    - "medical diagnosis"
+
+  complexity_indicators:
+    simple:
+      - "what is agno"
+      - "how to install"
+      - "basic example"
+      - "simple agent"
+    medium:
+      - "agent with tools"
+      - "knowledge base setup"
+      - "vector database configuration"
+      - "conversation memory"
+    complex:
+      - "custom tool development"
+      - "advanced rag implementation"
+      - "performance optimization"
+      - "production deployment"
