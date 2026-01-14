@@ -36,7 +36,7 @@ classifiers = [
 [project.urls]
 Homepage = "https://Paraschamoli.github.io/agno-assist-agent/"
 Repository = "https://github.com/Paraschamoli/agno-assist-agent"
-Documentation = "https://Paraschamoli.github.io/agno-assist-agent/"
+Documentation = "https://github.com/Paraschamoli/agno-assist-agent#readme"
 Issues = "https://github.com/Paraschamoli/agno-assist-agent/issues"
 Changelog = "https://github.com/Paraschamoli/agno-assist-agent/releases"
 

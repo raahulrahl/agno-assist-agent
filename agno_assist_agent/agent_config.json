@@ -46,11 +46,6 @@
       "required": true
     },
     {
-      "key": "EXA_API_KEY",
-      "description": "Exa API key for enhanced search capabilities",
-      "required": false
-    },
-    {
       "key": "ENABLE_VECTOR_DB",
       "description": "Enable LanceDB vector database for documentation (default: true)",
       "required": false
