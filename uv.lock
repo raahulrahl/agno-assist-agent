@@ -43,9 +43,11 @@ dependencies = [
     { name = "mem0ai" },
     { name = "openai" },
     { name = "pandas" },
+    { name = "pylance" },
     { name = "python-dotenv" },
     { name = "requests" },
     { name = "sqlalchemy" },
+    { name = "tantivy" },
 ]
 
 [package.dev-dependencies]
@@ -72,9 +74,11 @@ requires-dist = [
     { name = "mem0ai", specifier = ">=1.0.1" },
     { name = "openai", specifier = ">=2.11.0" },
     { name = "pandas", specifier = ">=2.0.0" },
+    { name = "pylance", specifier = ">=2.0.1" },
     { name = "python-dotenv", specifier = ">=1.0.1" },
     { name = "requests", specifier = ">=2.31.0" },
     { name = "sqlalchemy", specifier = ">=2.0.44" },
+    { name = "tantivy", specifier = ">=0.25.1" },
 ]
 
 [package.metadata.requires-dev]
@@ -2245,6 +2249,24 @@ crypto = [
 ]
 
 [[package]]
+name = "pylance"
+version = "2.0.1"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "lance-namespace" },
+    { name = "numpy" },
+    { name = "pyarrow" },
+]
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/08/d2/46da0b890b958d9cceec4485de85d69eceab4f8be0144090b18672a94304/pylance-2.0.1-cp39-abi3-macosx_11_0_arm64.whl", hash = "sha256:bff6452cdb8c56e84102a52291b7a9b4c08c87248d620afef05793b97de32341", size = 51732078, upload-time = "2026-02-13T18:27:23.674Z" },
+    { url = "https://files.pythonhosted.org/packages/00/32/834d2abcff7b26c2acb8f401aa3c198e5b29dcde070af4eb791806de1a23/pylance-2.0.1-cp39-abi3-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:804fcfb351a97fd3aad532df1fedafbc0109088e7b0ac3051c3512c3100a4a45", size = 54201004, upload-time = "2026-02-13T18:35:08.91Z" },
+    { url = "https://files.pythonhosted.org/packages/10/97/127eb70f6c2eeac986812a889461b8b6627f05bb93021aa9cb77dd92c2c3/pylance-2.0.1-cp39-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:51d089429b40cd81c89d7993191e758059e580dd7239fd2748bedd2e1021b592", size = 57723179, upload-time = "2026-02-13T18:42:11.695Z" },
+    { url = "https://files.pythonhosted.org/packages/8d/a4/e0928a866d45dd2eced31ba84db44ea80c05055c4ff105fc754262c1159d/pylance-2.0.1-cp39-abi3-manylinux_2_28_aarch64.whl", hash = "sha256:7fc5ba370514e6ba3e67f49b51e75687534b37e2eefdb91755d4fb20b3f6fe0b", size = 54227900, upload-time = "2026-02-13T18:35:02.269Z" },
+    { url = "https://files.pythonhosted.org/packages/9e/7b/0eb1f7522c8324c3248862d9de308f1f04cc787b53a6a70cb1687498b2c7/pylance-2.0.1-cp39-abi3-manylinux_2_28_x86_64.whl", hash = "sha256:d740d7a7ff9905e358a70d2adae2178ab9d6798cf3ef47729371223463c442e6", size = 57675386, upload-time = "2026-02-13T18:41:27.773Z" },
+    { url = "https://files.pythonhosted.org/packages/fb/2e/fff9905866ba91fad883727d482a10b4973a03aed31cb4c726236f6e5716/pylance-2.0.1-cp39-abi3-win_amd64.whl", hash = "sha256:a67f7a96d40a5012b04205879fe7ae50b6bf856fd79e97868582e449cfedbd1b", size = 61882118, upload-time = "2026-02-13T19:06:19.264Z" },
+]
+
+[[package]]
 name = "pymdown-extensions"
 version = "10.21"
 source = { registry = "https://pypi.org/simple" }
@@ -2679,6 +2701,19 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/a7/a5/d6f429d43394057b67a6b5bbe6eae2f77a6bf7459d961fdb224bf206eee6/starlette-0.48.0.tar.gz", hash = "sha256:7e8cee469a8ab2352911528110ce9088fdc6a37d9876926e73da7ce4aa4c7a46", size = 2652949, upload-time = "2025-09-13T08:41:05.699Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/be/72/2db2f49247d0a18b4f1bb9a5a39a0162869acf235f3a96418363947b3d46/starlette-0.48.0-py3-none-any.whl", hash = "sha256:0764ca97b097582558ecb498132ed0c7d942f233f365b86ba37770e026510659", size = 73736, upload-time = "2025-09-13T08:41:03.869Z" },
+]
+
+[[package]]
+name = "tantivy"
+version = "0.25.1"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/1b/f9/0cd3955d155d3e3ef74b864769514dd191e5dacba9f0beb7af2d914942ce/tantivy-0.25.1.tar.gz", hash = "sha256:68a3314699a7d18fcf338b52bae8ce46a97dde1128a3e47e33fa4db7f71f265e", size = 75120, upload-time = "2025-12-02T11:57:12.997Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/41/e7/6849c713ed0996c7628324c60512c4882006f0a62145e56c624a93407f90/tantivy-0.25.1-cp312-cp312-macosx_10_12_x86_64.macosx_11_0_arm64.macosx_10_12_universal2.whl", hash = "sha256:90fd919e5f611809f746560ecf36eb9be824dec62e21ae17a27243759edb9aa1", size = 7621494, upload-time = "2025-12-02T11:56:27.069Z" },
+    { url = "https://files.pythonhosted.org/packages/c5/22/c3d8294600dc6e7fa350daef9ff337d3c06e132b81df727de9f7a50c692a/tantivy-0.25.1-cp312-cp312-macosx_10_12_x86_64.whl", hash = "sha256:4613c7cf6c23f3a97989819690a0f956d799354957de7a204abcc60083cebe02", size = 3925219, upload-time = "2025-12-02T11:56:29.403Z" },
+    { url = "https://files.pythonhosted.org/packages/41/fc/cbb1df71dd44c9110eff4eaaeda9d44f2d06182fe0452193be20ddfba93f/tantivy-0.25.1-cp312-cp312-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:c477bd20b4df804d57dfc5033431bef27cde605695ae141b03abbf6ebc069129", size = 4198699, upload-time = "2025-12-02T11:56:31.359Z" },
+    { url = "https://files.pythonhosted.org/packages/47/4d/71abb78b774073c3ce12a4faa4351a9d910a71ffa3659526affba163873d/tantivy-0.25.1-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:f9b1a1ba1113c523c7ff7b10f282d6c4074006f7ef8d71e1d973d51bf7291ddb", size = 4183585, upload-time = "2025-12-02T11:56:33.317Z" },
+    { url = "https://files.pythonhosted.org/packages/be/16/3f00cd7ec458b92a0e977960af9ddfbeb762127d9acc68da9094a1fda556/tantivy-0.25.1-cp312-cp312-win_amd64.whl", hash = "sha256:9de0bafd3bd7ac9f8f82d53e17562e9db11a5af308fe5185c4bd86feaddbe4a6", size = 3424622, upload-time = "2025-12-02T11:56:34.788Z" },
 ]
 
 [[package]]

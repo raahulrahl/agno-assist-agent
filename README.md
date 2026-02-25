@@ -149,6 +149,154 @@ curl -X POST http://localhost:3773/chat \
   }'
 ```
 
+### Via JSON-RPC API
+
+The agent supports JSON-RPC 2.0 protocol for structured interactions.
+
+#### Send a Message
+
+```bash
+curl --location 'http://localhost:3773' \
+--header 'Content-Type: application/json' \
+--header 'Authorization: Bearer {{api_key}}' \
+--data '{
+    "jsonrpc": "2.0",
+    "method": "message/send",
+    "params": {
+        "message": {
+            "role": "user",
+            "parts": [
+                {
+                    "kind": "text",
+                    "text": "What is Agno and how do I get started?"
+                }
+            ],
+            "kind": "message",
+            "messageId": "550e8400-e29b-41d4-a716-446655440001",
+            "contextId": "550e8400-e29b-41d4-a716-446655440002",
+            "taskId": "550e8400-e29b-41d4-a716-446655440080"
+        },
+        "configuration": {
+            "acceptedOutputModes": [
+                "application/json"
+            ]
+        }
+    },
+    "id": "550e8400-e29b-41d4-a716-446655440004"
+}'
+```
+
+**Response:**
+```json
+{
+    "jsonrpc": "2.0",
+    "id": "550e8400-e29b-41d4-a716-446655440004",
+    "result": {
+        "id": "550e8400-e29b-41d4-a716-446655440080",
+        "context_id": "550e8400-e29b-41d4-a716-446655440002",
+        "kind": "task",
+        "status": {
+            "state": "submitted",
+            "timestamp": "2026-02-25T05:48:27.417961+00:00"
+        },
+        "history": [
+            {
+                "message_id": "550e8400-e29b-41d4-a716-446655440001",
+                "context_id": "550e8400-e29b-41d4-a716-446655440002",
+                "task_id": "550e8400-e29b-41d4-a716-446655440080",
+                "kind": "message",
+                "parts": [
+                    {
+                        "kind": "text",
+                        "text": "What is Agno and how do I get started?"
+                    }
+                ],
+                "role": "user"
+            }
+        ]
+    }
+}
+```
+
+#### Get Task Result
+
+```bash
+curl --location 'http://localhost:3773' \
+--header 'Content-Type: application/json' \
+--header 'Authorization: Bearer {{api_key}}' \
+--data '{
+    "jsonrpc": "2.0",
+    "method": "tasks/get",
+    "params": {
+        "taskId": "550e8400-e29b-41d4-a716-446655440080"
+    },
+    "id": "550e8400-e29b-41d4-a716-446655440005"
+}'
+```
+
+**Response:**
+```json
+{
+    "jsonrpc": "2.0",
+    "id": "550e8400-e29b-41d4-a716-446655440005",
+    "result": {
+        "id": "550e8400-e29b-41d4-a716-446655440080",
+        "context_id": "550e8400-e29b-41d4-a716-446655440002",
+        "kind": "task",
+        "status": {
+            "state": "completed",
+            "timestamp": "2026-02-25T05:48:40.173071+00:00"
+        },
+        "history": [
+            {
+                "message_id": "550e8400-e29b-41d4-a716-446655440001",
+                "context_id": "550e8400-e29b-41d4-a716-446655440002",
+                "task_id": "550e8400-e29b-41d4-a716-446655440080",
+                "kind": "message",
+                "parts": [
+                    {
+                        "kind": "text",
+                        "text": "What is Agno and how do I get started?"
+                    }
+                ],
+                "role": "user"
+            },
+            {
+                "role": "assistant",
+                "parts": [
+                    {
+                        "kind": "text",
+                        "text": "Agno is a framework that leverages AI to create advanced, agent-based software solutions. It provides the tools necessary for building multi-agent systems that integrate memory, knowledge, and various tools. Here’s how you can get started with Agno:\n\n### Steps to Get Started with Agno\n\n1. **Installation**:\n   - First, ensure you have the necessary dependencies installed. You can do this using pip:\n     ```bash\n     uv pip install -U agno openai tantivy psycopg2-binary\n     ```\n   - Make sure to set your API keys. For example, for OpenAI:\n     ```bash\n     export OPENAI_API_KEY=your_api_key_here\n     ```\n\n2. **Create Your First Agent**:\n   - Start by creating a simple agent using Python. Below is a basic example:\n     ```python\n     from agno.agent import Agent\n     from agno.models.openai import OpenAIResponses\n\n     agent = Agent(model=OpenAIResponses(id="gpt-5.2"))\n\n     agent.print_response("Hello, what can you do?")\n     ```\n\n3. **Configure the Database**:\n   - Setup a database to store sessions, run history, and more. You can use SQLite, PostgreSQL, etc.\n     ```python\n     db_url = "sqlite:///agno.db" # For SQLite\n     ```\n\n4. **Explore Toolkits**:\n   - Agno includes a variety of toolkits that enhance agent capabilities. You can integrate tools like Daytona for running code, ReasoningTools for complex problem-solving, and many others.\n\n5. **Develop and Test Your Agent**:\n   - Utilize the provided SDK to build and test your agent in various scenarios. Implement custom tools and workflows as needed.\n\n6. **Deploy to Production**:\n   - Use AgentOS to deploy your agents as production-grade APIs, ensuring they interact smoothly and scale effectively.\n\n### Exploring Agent Features\n\n- **Memory & Sessions**: Store user interactions to maintain context across conversations.\n- **Knowledge Retrieval**: Implement hybrid search with vector databases like PgVector or Pinecone.\n- **Workflow Integration**: Create complex workflows using WorkflowTools for structured operations.\n- **Tool Integration**: Use various tools like Notion, HackerNews, or DuckDuckGo to extend agent capabilities.\n\nThis basic guide will help you set up and begin using Agno for your AI-driven projects. For more detailed instructions, you can visit [Agno's official documentation](https://docs.agno.com).",
+                        "metadata": {
+                            "did.message.signature": "3dAtiWrgr9iUC5mb5RALWEHehdFrM5DRk8NVMeo6r82rAXBm22rKi51645sfYbJfVnWkoDV2AAjEAZ9Yeia2ucRX"
+                        }
+                    }
+                ],
+                "kind": "message",
+                "message_id": "90989d89-a4a9-4c09-bf85-8315aa8c199b",
+                "task_id": "550e8400-e29b-41d4-a716-446655440080",
+                "context_id": "550e8400-e29b-41d4-a716-446655440002"
+            }
+        ],
+        "artifacts": [
+            {
+                "artifact_id": "2a7349bd-2d9e-4b2e-a7ca-c2ef1550b163",
+                "name": "result",
+                "parts": [
+                    {
+                        "kind": "text",
+                        "text": "Agno is a framework that leverages AI to create advanced, agent-based software solutions. It provides the tools necessary for building multi-agent systems that integrate memory, knowledge, and various tools. Here’s how you can get started with Agno:\n\n### Steps to Get Started with Agno\n\n1. **Installation**:\n   - First, ensure you have the necessary dependencies installed. You can do this using pip:\n     ```bash\n     uv pip install -U agno openai tantivy psycopg2-binary\n     ```\n   - Make sure to set your API keys. For example, for OpenAI:\n     ```bash\n     export OPENAI_API_KEY=your_api_key_here\n     ```\n\n2. **Create Your First Agent**:\n   - Start by creating a simple agent using Python. Below is a basic example:\n     ```python\n     from agno.agent import Agent\n     from agno.models.openai import OpenAIResponses\n\n     agent = Agent(model=OpenAIResponses(id="gpt-5.2"))\n\n     agent.print_response("Hello, what can you do?")\n     ```\n\n3. **Configure the Database**:\n   - Setup a database to store sessions, run history, and more. You can use SQLite, PostgreSQL, etc.\n     ```python\n     db_url = "sqlite:///agno.db" # For SQLite\n     ```\n\n4. **Explore Toolkits**:\n   - Agno includes a variety of toolkits that enhance agent capabilities. You can integrate tools like Daytona for running code, ReasoningTools for complex problem-solving, and many others.\n\n5. **Develop and Test Your Agent**:\n   - Utilize the provided SDK to build and test your agent in various scenarios. Implement custom tools and workflows as needed.\n\n6. **Deploy to Production**:\n   - Use AgentOS to deploy your agents as production-grade APIs, ensuring they interact smoothly and scale effectively.\n\n### Exploring Agent Features\n\n- **Memory & Sessions**: Store user interactions to maintain context across conversations.\n- **Knowledge Retrieval**: Implement hybrid search with vector databases like PgVector or Pinecone.\n- **Workflow Integration**: Create complex workflows using WorkflowTools for structured operations.\n- **Tool Integration**: Use various tools like Notion, HackerNews, or DuckDuckGo to extend agent capabilities.\n\nThis basic guide will help you set up and begin using Agno for your AI-driven projects. For more detailed instructions, you can visit [Agno's official documentation](https://docs.agno.com).",
+                        "metadata": {
+                            "did.message.signature": "3dAtiWrgr9iUC5mb5RALWEHehdFrM5DRk8NVMeo6r82rAXBm22rKi51645sfYbJfVnWkoDV2AAjEAZ9Yeia2ucRX"
+                        }
+                    }
+                ]
+            }
+        ]
+    }
+}
+```
+
 ### Sample Agno Framework Queries
 *   "What is Agno and how do I get started?"
 *   "How do I create an agent with tools in Agno?"

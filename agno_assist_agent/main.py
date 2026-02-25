@@ -18,7 +18,6 @@ from textwrap import dedent
 from typing import Any
 
 from agno.agent import Agent
-from agno.knowledge.embedder.openai import OpenAIEmbedder
 from agno.knowledge.knowledge import Knowledge
 from agno.models.openrouter import OpenRouter
 from agno.tools.mem0 import Mem0Tools
@@ -33,22 +32,134 @@ load_dotenv()
 agent: Agent | None = None
 knowledge: Knowledge | None = None
 model_name: str | None = None
-api_key: str | None = None
 mem0_api_key: str | None = None
-_initialized = False
+_initialized: bool = False
 _init_lock = asyncio.Lock()
 
 
 class APIKeyError(ValueError):
-    """API key is missing."""
+    """Exception raised when an API key is missing."""
+
+
+class LocalEmbedder:
+    """Local embedder compatible with Agno's Knowledge class.
+
+    This embedder creates simple frequency-based embeddings without requiring
+    any external API keys. It produces 1536-dimensional vectors to match
+    OpenAI's embedding dimensions.
+    """
+
+    def __init__(self, dimensions: int = 1536) -> None:
+        """Initialize the local embedder with specified dimensions.
+
+        Args:
+            dimensions: The output dimension of the embeddings (default: 1536)
+        """
+        self.dimensions = dimensions
+        self.enable_batch = True
+        print(f"🔧 Using local embedder (no API key required) - {dimensions} dims")
+
+    def _simple_embed(self, text: str) -> list[float]:
+        """Create a simple but deterministic embedding based on character frequencies.
+
+        Args:
+            text: The input text to embed
+
+        Returns:
+            A normalized vector of floats with length self.dimensions
+        """
+        if not text or not isinstance(text, str):
+            return [0.0] * self.dimensions
+
+        text = text.lower()
+        embedding = []
+        # Expanded character set for better distribution
+        chars = "abcdefghijklmnopqrstuvwxyz0123456789 .,!?-:;\"'()[]{}<>@#$%^&*+=/\\|~`"
+        for char in chars:
+            embedding.append(text.count(char) / max(1, len(text)))
+
+        # Repeat pattern to reach required dimensions if needed
+        if len(embedding) < self.dimensions:
+            # Repeat the pattern to fill to required dimensions
+            repeats = (self.dimensions // len(embedding)) + 1
+            embedding = (embedding * repeats)[: self.dimensions]
+        else:
+            embedding = embedding[: self.dimensions]
+
+        # Normalize the embedding
+        magnitude = sum(x * x for x in embedding) ** 0.5
+        if magnitude > 0:
+            embedding = [x / magnitude for x in embedding]
+
+        return embedding
+
+    def get_embedding(self, text: str) -> list[float]:
+        """Get embedding for a single text (synchronous).
+
+        Args:
+            text: The input text to embed
+
+        Returns:
+            A vector embedding of the text
+        """
+        return self._simple_embed(text)
+
+    def get_embeddings(self, texts: list[str]) -> list[list[float]]:
+        """Get embeddings for multiple texts (synchronous).
+
+        Args:
+            texts: List of input texts to embed
+
+        Returns:
+            List of vector embeddings
+        """
+        return [self._simple_embed(text) for text in texts]
+
+    async def aget_embedding(self, text: str) -> list[float]:
+        """Get embedding for a single text (asynchronous).
+
+        Args:
+            text: The input text to embed
+
+        Returns:
+            A vector embedding of the text
+        """
+        return self.get_embedding(text)
+
+    async def aget_embeddings(self, texts: list[str]) -> list[list[float]]:
+        """Get embeddings for multiple texts (asynchronous).
+
+        Args:
+            texts: List of input texts to embed
+
+        Returns:
+            List of vector embeddings
+        """
+        return self.get_embeddings(texts)
+
+    async def async_get_embedding_and_usage(self, text: str) -> tuple[list[float], dict]:
+        """Get embedding and usage info (required by Agno).
+
+        Args:
+            text: The input text to embed
+
+        Returns:
+            A tuple containing the embedding vector and usage metadata
+        """
+        embedding = await self.aget_embedding(text)
+        return embedding, {"prompt_tokens": 0, "total_tokens": 0}
 
 
 def load_config() -> dict:
-    """Load agent configuration from project root."""
+    """Load agent configuration from project root.
+
+    Returns:
+        Dictionary containing agent configuration
+    """
     possible_paths = [
-        Path(__file__).parent.parent / "agent_config.json",  # Project root
-        Path(__file__).parent / "agent_config.json",  # Same directory
-        Path.cwd() / "agent_config.json",  # Current working directory
+        Path(__file__).parent.parent / "agent_config.json",
+        Path(__file__).parent / "agent_config.json",
+        Path.cwd() / "agent_config.json",
     ]
 
     for config_path in possible_paths:
@@ -60,7 +171,6 @@ def load_config() -> dict:
                 print(f"⚠️  Error reading {config_path}: {e}")
                 continue
 
-    # Default configuration
     return {
         "name": "agno-assist-agent",
         "description": "AI assistant for Agno framework documentation using retrieval-augmented generation (RAG)",
@@ -103,7 +213,11 @@ def load_config() -> dict:
 
 
 def _get_api_keys() -> tuple[str | None, str | None, str]:
-    """Get API keys and configuration from environment."""
+    """Get API keys and configuration from environment.
+
+    Returns:
+        Tuple of (openrouter_api_key, mem0_api_key, model_name)
+    """
     openrouter_api_key = os.getenv("OPENROUTER_API_KEY")
     mem0_api_key = os.getenv("MEM0_API_KEY")
     model_name = os.getenv("MODEL_NAME", "openai/gpt-4o")
@@ -111,7 +225,18 @@ def _get_api_keys() -> tuple[str | None, str | None, str]:
 
 
 def _create_llm_model(openrouter_api_key: str, model_name: str) -> OpenRouter:
-    """Create and return the OpenRouter model."""
+    """Create and return the OpenRouter model.
+
+    Args:
+        openrouter_api_key: The OpenRouter API key
+        model_name: The model identifier
+
+    Returns:
+        Configured OpenRouter model instance
+
+    Raises:
+        APIKeyError: If openrouter_api_key is missing
+    """
     if not openrouter_api_key:
         error_msg = (
             "OpenRouter API key is required. Set OPENROUTER_API_KEY environment variable.\n"
@@ -122,13 +247,15 @@ def _create_llm_model(openrouter_api_key: str, model_name: str) -> OpenRouter:
     return OpenRouter(
         id=model_name,
         api_key=openrouter_api_key,
-        cache_response=True,
-        supports_native_structured_outputs=True,
     )
 
 
 async def _setup_knowledge_base() -> Knowledge | None:
-    """Set up the vector database knowledge base for documentation."""
+    """Set up the vector database knowledge base for documentation.
+
+    Returns:
+        Knowledge instance if successful, None otherwise
+    """
     enable_vector_db = os.getenv("ENABLE_VECTOR_DB", "true").lower() in ("true", "1", "yes")
 
     if not enable_vector_db:
@@ -138,34 +265,43 @@ async def _setup_knowledge_base() -> Knowledge | None:
     vector_db_path = os.getenv("VECTOR_DB_PATH", "tmp/lancedb")
 
     try:
-        # Create knowledge base with hybrid search
+        # Create knowledge base with hybrid search using local embeddings
         knowledge_instance = Knowledge(
             vector_db=LanceDb(
                 uri=vector_db_path,
                 table_name="agno_assist_knowledge",
-                search_type=SearchType.hybrid,  # Semantic + keyword search
-                embedder=OpenAIEmbedder(id="text-embedding-3-small"),
+                search_type=SearchType.hybrid,
+                embedder=LocalEmbedder(),  # type: ignore[arg-type]
             ),
         )
 
-        # Load Agno documentation
         print("📚 Loading Agno documentation into vector database...")
         await knowledge_instance.add_content_async(name="Agno Documentation", url="https://docs.agno.com/llms-full.txt")
-        print("✅ Documentation loaded successfully")
 
     except Exception as e:
         print(f"⚠️  Failed to initialize vector database: {e}")
         print("⚠️  Agent will answer questions without document retrieval.")
         return None
+
     else:
+        print("✅ Documentation loaded successfully")
         return knowledge_instance
 
 
 def _setup_tools(mem0_api_key: str) -> list:
-    """Set up all tools for the Agno Assist agent."""
+    """Set up all tools for the Agno Assist agent.
+
+    Args:
+        mem0_api_key: The Mem0 API key
+
+    Returns:
+        List of initialized tools
+
+    Raises:
+        APIKeyError: If mem0_api_key is missing
+    """
     tools = []
 
-    # Mem0 for conversation memory (required)
     if not mem0_api_key:
         error_msg = (
             "Mem0 API key is required. Set MEM0_API_KEY environment variable.\n"
@@ -185,12 +321,17 @@ def _setup_tools(mem0_api_key: str) -> list:
 
 
 async def initialize_agent() -> None:
-    """Initialize the Agno Assist agent."""
+    """Initialize the Agno Assist agent.
+
+    Sets up the knowledge base, LLM model, and tools, then creates the agent.
+
+    Raises:
+        APIKeyError: If required API keys are missing
+    """
     global agent, knowledge
 
     openrouter_api_key, mem0_api_key, model_name = _get_api_keys()
 
-    # Validate required API keys
     if not openrouter_api_key:
         error_msg = (
             "OpenRouter API key is required. Set OPENROUTER_API_KEY environment variable.\n"
@@ -205,13 +346,11 @@ async def initialize_agent() -> None:
         )
         raise APIKeyError(error_msg)
 
-    # Setup knowledge base (optional)
     knowledge = await _setup_knowledge_base()
 
     model = _create_llm_model(openrouter_api_key, model_name)
     tools = _setup_tools(mem0_api_key)
 
-    # Create the Agno Assist agent
     agent = Agent(
         name="Agno Documentation Assistant",
         model=model,
@@ -260,23 +399,41 @@ async def initialize_agent() -> None:
 
     print(f"✅ Agno Assist agent initialized using {model_name}")
     if knowledge:
-        print("📚 Vector database enabled for documentation search")
+        print("📚 Vector database enabled for documentation search (using local embeddings)")
     print("🧠 Conversation memory enabled via Mem0")
 
 
 async def run_agent(messages: list[dict[str, str]]) -> Any:
-    """Run the agent with the given messages."""
+    """Run the agent with the given messages.
+
+    Args:
+        messages: List of message dictionaries with 'role' and 'content'
+
+    Returns:
+        Agent response
+
+    Raises:
+        RuntimeError: If agent is not initialized
+    """
     global agent
 
     if not agent:
         error_msg = "Agent not initialized"
         raise RuntimeError(error_msg)
 
-    return await agent.arun(messages)  # type: ignore[invalid-await]
+    result = await agent.arun(messages)  # type: ignore[arg-type]
+    return result
 
 
 async def handler(messages: list[dict[str, str]]) -> Any:
-    """Handle incoming agent messages with lazy initialization."""
+    """Handle incoming agent messages with lazy initialization.
+
+    Args:
+        messages: List of message dictionaries from the client
+
+    Returns:
+        Agent response
+    """
     global _initialized
 
     async with _init_lock:
@@ -295,7 +452,11 @@ async def cleanup() -> None:
 
 
 def _setup_environment_variables(args: argparse.Namespace) -> None:
-    """Set environment variables from command line arguments."""
+    """Set environment variables from command line arguments.
+
+    Args:
+        args: Parsed command line arguments
+    """
     if args.openrouter_api_key:
         os.environ["OPENROUTER_API_KEY"] = args.openrouter_api_key
     if args.mem0_api_key:
@@ -323,7 +484,7 @@ def _display_configuration_info() -> None:
     if os.getenv("MEM0_API_KEY"):
         config_info.append("🧠 Memory: Conversation context enabled")
     if os.getenv("ENABLE_VECTOR_DB", "true").lower() in ("true", "1", "yes"):
-        config_info.append("📚 Vector DB: Documentation search enabled")
+        config_info.append("📚 Vector DB: Documentation search enabled (local embeddings)")
     else:
         config_info.append("📚 Vector DB: Disabled")
 
