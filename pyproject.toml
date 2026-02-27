@@ -2,12 +2,12 @@
 name = "agno-assist-agent"
 version = "0.1.0"
 description = "AI-powered documentation assistant for the Agno framework using retrieval-augmented generation (RAG). Provides accurate, documentation-grounded responses by searching vector databases with hybrid search capabilities."
-authors = [{ name = "Paras Chamoli", email = "paras25619@gmail.com" }]
+authors = [{ name = "Paras Chamoli", email = "paras@getbindu.com" }]
 readme = "README.md"
 keywords = ["python", "ai", "agno", "assistant", "documentation", "rag", "vector-database", "lancedb", "bindu", "mem0"]
 requires-python = ">=3.12,<3.13"
 dependencies = [
-    "bindu==2026.9.2.2",
+    "bindu==2026.9.4",
     "agno>=2.2.0",
     "openai>=2.11.0",
     "exa-py>=2.0.0",
